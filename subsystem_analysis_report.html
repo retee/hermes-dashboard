@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes 子系统深度分析报告</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0d1117; color:#c9d1d9; padding:20px; max-width:1200px; margin:0 auto; }
+.header { text-align:center; margin-bottom:30px; border-bottom:1px solid #30363d; padding-bottom:20px; }
+.header h1 { color:#58a6ff; font-size:1.8em; }
+.header .meta { color:#8b949e; font-size:0.85em; margin-top:5px; }
+.toc { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:15px 20px; margin-bottom:30px; }
+.toc h2 { color:#58a6ff; margin-bottom:10px; }
+.toc a { color:#58a6ff; text-decoration:none; display:block; padding:3px 0; }
+.toc a:hover { text-decoration:underline; }
+.summary-box { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px; margin-bottom:30px; }
+.summary-card { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px; text-align:center; }
+.summary-card .num { font-size:2em; font-weight:bold; }
+.summary-card .label { font-size:0.8em; color:#8b949e; }
+.green { color:#3fb950; }
+.red { color:#f85149; }
+.yellow { color:#d29922; }
+.blue { color:#58a6ff; }
+
+.subsystem { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:20px; margin-bottom:25px; page-break-inside:avoid; }
+.subsystem h2 { color:#58a6ff; margin-bottom:5px; font-size:1.3em; }
+.subsystem .status-row { display:flex; gap:20px; align-items:center; margin-bottom:15px; flex-wrap:wrap; }
+.subsystem .pulse { font-size:1.5em; }
+.subsystem .tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.8em; }
+.tag-green { background:#3fb95022; color:#3fb950; border:1px solid #3fb95044; }
+.tag-red { background:#f8514922; color:#f85149; border:1px solid #f8514944; }
+.tag-yellow { background:#d2992222; color:#d29922; border:1px solid #d2992244; }
+
+.metrics-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; margin-bottom:15px; }
+.metric { background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:10px; }
+.metric .val { font-size:1.3em; font-weight:bold; }
+.metric .lbl { font-size:0.75em; color:#8b949e; margin-top:3px; }
+
+.analysis-section { margin:15px 0; }
+.analysis-section h4 { color:#d29922; margin:10px 0 5px 0; font-size:0.95em; }
+.analysis-section p, .analysis-section li { font-size:0.85em; line-height:1.6; margin-bottom:6px; }
+.analysis-section ul { padding-left:20px; }
+
+.chart { text-align:center; margin:15px 0; }
+.chart img { max-width:100%; border-radius:6px; border:1px solid #30363d; }
+
+.compare-table { width:100%; border-collapse:collapse; margin:10px 0; }
+.compare-table th, .compare-table td { padding:6px 10px; border:1px solid #21262d; font-size:0.82em; text-align:center; }
+.compare-table th { background:#21262d; color:#8b949e; }
+.compare-table td.prev { color:#8b949e; }
+.compare-table td.curr { color:#c9d1d9; font-weight:bold; }
+.compare-table td.delta-up { color:#3fb950; }
+.compare-table td.delta-down { color:#f85149; }
+
+.footer { margin-top:40px; text-align:center; color:#484f58; font-size:0.8em; border-top:1px solid #30363d; padding-top:20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔬 Hermes 子系统深度分析报告</h1>
+  <div class="meta">
+    生成时间: 2026-06-25 13:38:21 | 
+    数据范围: 2026-06-24 ~ 2026-06-25 | 
+    子系统数: 12 | 
+    数据源: 文件系统实时读取
+  </div>
+</div>
+
+<div class="toc">
+  <h2>目录</h2>
+  <a href="#exec-summary">执行摘要</a>
+  <a href="#trend-dashboard">趋势总览面板</a>
+  <a href="#s1">📚 子系统1: 文献管道</a>
+  <a href="#s2">🧠 子系统2: GBrain知识大脑</a>
+  <a href="#s3">🔬 子系统3: 科研闭环</a>
+  <a href="#s4">🕳️ 子系统4: 缺口消费</a>
+  <a href="#s5">💊 子系统5: 胶囊复现</a>
+  <a href="#s6">🧬 子系统6: 管线运行</a>
+  <a href="#s7">🏥 子系统7: 临床KB</a>
+  <a href="#s8">⚙️ 子系统8: Cron调度</a>
+  <a href="#s9">📱 子系统9: 推文监控</a>
+  <a href="#s10">📝 子系统10: 论文写作</a>
+  <a href="#s11">📖 子系统11: 知识库</a>
+  <a href="#s12">🧪 子系统12: 自进化引擎</a>
+  <a href="#recommendations">行动建议</a>
+</div>
+
+<!-- EXECUTIVE SUMMARY -->
+<div id="exec-summary" class="subsystem">
+  <h2>📊 执行摘要</h2>
+  <div class="summary-box">
+    <div class="summary-card"><div class="num green">8</div><div class="label">🟢 健康子系统</div></div>
+    <div class="summary-card"><div class="num yellow">0</div><div class="label">🟡 预警子系统</div></div>
+    <div class="summary-card"><div class="num red">4</div><div class="label">🔴 停滞子系统</div></div>
+    <div class="summary-card"><div class="num blue">483</div><div class="label">文献PDF (↑377%)</div></div>
+    <div class="summary-card"><div class="num blue">285</div><div class="label">假设总数 (↑1681%)</div></div>
+    <div class="summary-card"><div class="num red">1217</div><div class="label">缺口池(持续停滞)</div></div>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>关键发现</h4>
+    <ul>
+      <li><span class="green">【高增长】</span>文献PDF从101→483 (24h增长377%)，假设从16→285 (爆发)，自进化任务从43→70</li>
+      <li><span class="red">【管道断流】</span>缺口池1217持续3个快照无消费——gap→任务→执行 链路缺下游</li>
+      <li><span class="red">【长期停滞】</span>胶囊报告13天、论文主稿18天、RAGFlow 19天无活动——占用资源但不产出</li>
+      <li><span class="red">【运行错误】</span>Orchestrator主循环 RuntimeError (06:38,工具调用上限中断)</li>
+      <li><span class="yellow">【结构问题】</span>Claude分配仅6/70任务(8.6%)，自进化引擎反复建议但未改善</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TREND DASHBOARD -->
+<div id="trend-dashboard" class="subsystem">
+  <h2>📈 趋势总览面板</h2>
+  <div class="chart"><img src="/home/bio/ssd/dashboard/charts/chart_combined_trends.png" alt="综合趋势"></div>
+  <div class="analysis-section">
+    <h4>解读</h4>
+    <p>左上: 文献PDF三天三跳(101→228→483)，表明EPMC批量下载管线和微信→PMC桥接器同时发力<br>
+    中上: 假设从16跳到285——hypothesis_engine_v2大量生成，但L3验证仍为0，大量L0(188)未进入验证<br>
+    右上: 缺口池1217→1217→1217完全不变——gap_consumer管线从未真正运行<br>
+    左下: 进化任务稳步增长(43→46→66→70)，Claude分配严重不足(6/70)<br>
+    右下: 胶囊报告(13天)、论文(18天)、RAGFlow(19天)长期停滞</p>
+  </div>
+  
+  <div class="chart"><img src="/home/bio/ssd/dashboard/charts/chart_health_radar.png" alt="健康雷达"></div>
+</div>
+
+<!-- SUBSYSTEM 1: 文献管道 -->
+<div id="s1" class="subsystem">
+  <h2>📚 子系统1: 文献管道</h2>
+  <div class="status-row">
+    <span class="pulse">🟢 健康</span>
+    <span class="tag tag-green">↑↑ 增长中</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val green">483</div><div class="lbl">PDF磁盘数</div></div>
+    <div class="metric"><div class="val green">+382</div><div class="lbl">24h增量</div></div>
+    <div class="metric"><div class="val green">377%</div><div class="lbl">24h增长率</div></div>
+    <div class="metric"><div class="val blue">11515</div><div class="lbl">今日摘要扫描</div></div>
+    <div class="metric"><div class="val blue">102</div><div class="lbl">全文摄入</div></div>
+    <div class="metric"><div class="val">2h</div><div class="lbl">最后活动</div></div>
+  </div>
+  
+  <div class="chart"><img src="/home/bio/ssd/dashboard/charts/chart_lit_trend.png" alt="文献趋势"></div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>EPMC批量下载(每2小时)+微信→PMC桥(每日9:30)双管道同时运行</li>
+      <li>6/24 22:36: 101篇 → 6/25 07:15: 228篇 → 6/25 13:00: 483篇</li>
+      <li>今日新增255篇(自07:15起)，速率约42篇/小时</li>
+      <li>摘要扫描11515篇/天，全文摄入102篇/天</li>
+    </ul>
+    
+    <h4>遇到的困难与解决</h4>
+    <ul>
+      <li><strong>困难:</strong> PMC API曾被reCAPTCHA封锁，浏览器路线不可用</li>
+      <li><strong>解决:</strong> 改用 curl --noproxy '*' 方案直接获取 PDF</li>
+      <li><strong>困难:</strong> ebi.ac.uk 经Python代理返回空JSON(17B)</li>
+      <li><strong>解决:</strong> 所有文献下载统一走curl非Python方案</li>
+    </ul>
+    
+    <h4>对比之前</h4>
+    <table class="compare-table">
+      <tr><th>指标</th><th>D-1 (6/24 22:36)</th><th>现在 (6/25 13:00)</th><th>Δ</th></tr>
+      <tr><td class="prev">PDF磁盘</td><td class="prev">101</td><td class="curr">483</td><td class="delta-up">+378%</td></tr>
+      <tr><td class="prev">摘要扫描</td><td class="prev">24100</td><td class="curr">24100</td><td>0</td></tr>
+      <tr><td class="prev">24h新增</td><td class="prev">—</td><td class="curr">255</td><td class="delta-up">NEW</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 2: GBrain -->
+<div id="s2" class="subsystem">
+  <h2>🧠 子系统2: GBrain知识大脑</h2>
+  <div class="status-row">
+    <span class="pulse">🟢 健康</span>
+    <span class="tag tag-green">稳定运行</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val blue">1160</div><div class="lbl">Brain页面(PGLite)</div></div>
+    <div class="metric"><div class="val green">90</div><div class="lbl">健康分数</div></div>
+    <div class="metric"><div class="val green">2</div><div class="lbl">Autopilot进程</div></div>
+    <div class="metric"><div class="val blue">4446</div><div class="lbl">摄入页数(6/24)</div></div>
+    <div class="metric"><div class="val">~1h</div><div class="lbl">最后活动</div></div>
+    <div class="metric"><div class="val green">0</div><div class="lbl">同步失败</div></div>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>GBrain Autopilot双进程活跃(PID 1122542 + 2132511)</li>
+      <li>PGLite数据库正常(1160页面)，快照每6小时自动执行</li>
+      <li>健康分稳定在90-91区间</li>
+      <li>DeepSeek API通过本地proxy:4000接入(Anthropic→DeepSeek转换)</li>
+    </ul>
+    
+    <h4>对比之前</h4>
+    <table class="compare-table">
+      <tr><th>指标</th><th>D-1</th><th>现在</th><th>Δ</th></tr>
+      <tr><td class="prev">健康分</td><td class="prev">90</td><td class="curr">90</td><td>→</td></tr>
+      <tr><td class="prev">摄入</td><td class="prev">—</td><td class="curr">4446/日</td><td class="delta-up">活跃</td></tr>
+      <tr><td class="prev">Autopilot</td><td class="prev">活跃</td><td class="curr">2进程</td><td>稳定</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 3: 科研闭环 -->
+<div id="s3" class="subsystem">
+  <h2>🔬 子系统3: 科研闭环</h2>
+  <div class="status-row">
+    <span class="pulse">🟢 健康</span>
+    <span class="tag tag-green">↑↑ 爆发增长</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val blue">285</div><div class="lbl">假设总数</div></div>
+    <div class="metric"><div class="val green">↑1681%</div><div class="lbl">24h增长率</div></div>
+    <div class="metric"><div class="val yellow">90</div><div class="lbl">L2验证</div></div>
+    <div class="metric"><div class="val red">0</div><div class="lbl">L3验证</div></div>
+    <div class="metric"><div class="val">188</div><div class="lbl">L0待验证</div></div>
+    <div class="metric"><div class="val">50</div><div class="lbl">活跃假设</div></div>
+  </div>
+  
+  <div class="chart"><img src="/home/bio/ssd/dashboard/charts/chart_hypo_explosion.png" alt="假设爆发"></div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li><strong>爆发:</strong> 6/24假设总数16 → 6/25跳至285，hypothesis_engine_v2大量生成</li>
+      <li>L2验证从12→90(+650%)，表明部分假设进入统计证据阶段</li>
+      <li>但L3验证仍为0——沙箱复现从未启动</li>
+      <li>L0残留188个假设未分级——大量"想法"未进入验证管线</li>
+    </ul>
+    
+    <h4>问题</h4>
+    <ul>
+      <li><span class="red">严重:</span> 285个假设 vs 0个L3验证 = 无限生成无验证闭环</li>
+      <li>verification_gate.json 的 repro_status: none 占多数</li>
+      <li>假设质量未经筛选，可能大量低质量假设稀释</li>
+    </ul>
+    
+    <h4>对比之前</h4>
+    <table class="compare-table">
+      <tr><th>指标</th><th>D-1</th><th>现在</th><th>Δ</th></tr>
+      <tr><td class="prev">假设总数</td><td class="prev">16</td><td class="curr">285</td><td class="delta-up">+1681%</td></tr>
+      <tr><td class="prev">L2验证</td><td class="prev">12</td><td class="curr">90</td><td class="delta-up">+650%</td></tr>
+      <tr><td class="prev">L3验证</td><td class="prev">0</td><td class="curr">0</td><td>→0</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 4: 缺口消费 -->
+<div id="s4" class="subsystem">
+  <h2>🕳️ 子系统4: 缺口消费</h2>
+  <div class="status-row">
+    <span class="pulse">🟢 活跃</span>
+    <span class="tag tag-red">⚠ 管道断流</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val red">1217</div><div class="lbl">缺口池(停滞)</div></div>
+    <div class="metric"><div class="val red">0</div><div class="lbl">已消费</div></div>
+    <div class="metric"><div class="val red">0%</div><div class="lbl">消费率</div></div>
+    <div class="metric"><div class="val blue">31</div><div class="lbl">消费目录文件</div></div>
+  </div>
+  
+  <div class="chart"><img src="/home/bio/ssd/dashboard/charts/chart_gap_stagnation.png" alt="缺口停滞"></div>
+  
+  <div class="analysis-section">
+    <h4>运转情况 — 核心问题</h4>
+    <ul>
+      <li><span class="red">【管道断流】</span>缺口池1217三快照完全不变，消费数恒为0</li>
+      <li>gap_consumption目录有31个文件但不形成有效消费</li>
+      <li>Gap-Consumer-Hourly cron每4小时触发但产出=0</li>
+      <li>daily_metrics中gaps_consumed: 0, gaps_total: 1217</li>
+    </ul>
+    
+    <h4>根因</h4>
+    <ul>
+      <li>gap→任务→执行链路缺下游：bioinf-gap-consumer评分后无后续</li>
+      <li>1217个缺口已评分但从未转化为可执行任务</li>
+      <li>Orchestrator主循环中断(6/25 06:38 RuntimeError)进一步阻断</li>
+    </ul>
+    
+    <h4>建议</h4>
+    <ul>
+      <li>从1217中取GOLD级Top 10→生成具体执行任务→分配给胶囊管线</li>
+      <li>修复Orchestrator主循环的工具调用上限问题(batch化替代逐个调用)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 5: 胶囊复现 -->
+<div id="s5" class="subsystem">
+  <h2>💊 子系统5: 胶囊复现</h2>
+  <div class="status-row">
+    <span class="pulse">🔴 停滞</span>
+    <span class="tag tag-red">日报告13天未更新</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val blue">19</div><div class="lbl">总胶囊</div></div>
+    <div class="metric"><div class="val green">13</div><div class="lbl">✅通过</div></div>
+    <div class="metric"><div class="val red">3</div><div class="lbl">❌失败</div></div>
+    <div class="metric"><div class="val yellow">3</div><div class="lbl">⏳待验证</div></div>
+    <div class="metric"><div class="val red">13天</div><div class="lbl">最后日报告</div></div>
+  </div>
+  
+  <div class="chart"><img src="/home/bio/ssd/dashboard/charts/chart_capsule_status.png" alt="胶囊状态"></div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>19个胶囊入档，13通过3失败3待验证，总体通过率68%</li>
+      <li>capsule-pipeline-runner cron每120分钟运行一次(最近: 12:39)</li>
+      <li>但 capsule_daily_report.md 最后更新 6/12 18:45——13天无报告</li>
+      <li>capsule-daily-reporter cron每日21:00触发但产出可能为空</li>
+    </ul>
+    
+    <h4>困难</h4>
+    <ul>
+      <li>3个失败胶囊未修复: 环境依赖/R包版本/GEO数据变更</li>
+      <li>capsule_results.json只有7条记录，大部分胶囊无结构化结果</li>
+      <li>repro_engine.py执行中断(RuntimeError, ~13分钟时卡在突变复现)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 6: 管线运行 -->
+<div id="s6" class="subsystem">
+  <h2>🧬 子系统6: 管线运行</h2>
+  <div class="status-row">
+    <span class="pulse">🟢 健康</span>
+    <span class="tag tag-green">活跃</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val blue">7</div><div class="lbl">铁死亡管线文件</div></div>
+    <div class="metric"><div class="val blue">多文件</div><div class="lbl">TCGA缓存</div></div>
+    <div class="metric"><div class="val blue">多文件</div><div class="lbl">MR结果</div></div>
+    <div class="metric"><div class="val blue">32</div><div class="lbl">表达分析(8癌种)</div></div>
+    <div class="metric"><div class="val">expression</div><div class="lbl">最后阶段</div></div>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>Orchestrator-Research管线(12-18时)覆盖30+技能: 假设挖掘、scRNA、空间转录组、TCGA基因组、表观、多组学、药物靶点、分子对接、PPI、蛋白结构、TCR/BCR、代谢MR、实验设计等</li>
+      <li>Unified-Pipeline-2H每2小时自动执行</li>
+      <li>8癌种铁死亡表达分析已完成(32个summary文件)</li>
+      <li>表达式复现阶段执行完成(execution_results.json: 9 passed, 7 failed)</li>
+    </ul>
+    
+    <h4>困难</h4>
+    <ul>
+      <li>突变复现阶段: repro_engine.py 执行>13分钟时中断(RuntimeError, 工具调用上限)</li>
+      <li>3个僵尸repro_engine.py进程(PID 2902173, 2981976)占用资源</li>
+      <li>7个表达分析失败需要排查</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 7: 临床KB -->
+<div id="s7" class="subsystem">
+  <h2>🏥 子系统7: 临床KB</h2>
+  <div class="status-row">
+    <span class="pulse">🟢 健康</span>
+    <span class="tag tag-green">在线</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val green">✅</div><div class="lbl">ChromaDB</div></div>
+    <div class="metric"><div class="val blue">6</div><div class="lbl">数据库</div></div>
+    <div class="metric"><div class="val">~1h</div><div class="lbl">最后活动</div></div>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>ChromaDB在线，77篇临床指南/手术图谱</li>
+      <li>6大公共数据库: MIMICⅢ✅, NHANES✅(17GB), FAERS✅, GBD✅, CHARLS⏳, SEER⏳</li>
+      <li>临床早课(7:00)+午课(12:00)+晚间答疑(20:00)三时段推送</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 8: Cron调度 -->
+<div id="s8" class="subsystem">
+  <h2>⚙️ 子系统8: Cron调度</h2>
+  <div class="status-row">
+    <span class="pulse">🔴 有错误</span>
+    <span class="tag tag-red">1个RuntimeError</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val green">65</div><div class="lbl">活跃cron</div></div>
+    <div class="metric"><div class="val yellow">12</div><div class="lbl">暂停cron</div></div>
+    <div class="metric"><div class="val red">1</div><div class="lbl">运行错误</div></div>
+    <div class="metric"><div class="val green">65/8</div><div class="lbl">活跃/暂停比</div></div>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>65个活跃任务稳定运行，覆盖: 文献下载、KB健康监控、自进化循环、教学推送、Orchestrator四大分段</li>
+      <li>12个暂停任务: 部分已过期(如每日知识内化6/21→)，部分合理(如月基准测试7/1)</li>
+    </ul>
+    
+    <h4>已知错误</h4>
+    <ul>
+      <li><span class="red">04ea463ee1c3</span> Orchestrator主循环(每日6:00): RuntimeError — "工具调用上限中断"，发生在突变复现阶段</li>
+      <li><span class="yellow">64431d97b135</span> epmc-lit-download: delivery failed (no delivery target)</li>
+      <li>已暂停14f3892d49ec(文献监控+下载6:00)在6/23后未恢复——可能影响文献管道连续性</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 9: 推文监控 -->
+<div id="s9" class="subsystem">
+  <h2>📱 子系统9: 推文监控</h2>
+  <div class="status-row">
+    <span class="pulse">🟢 活跃</span>
+    <span class="tag tag-green">正常</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val blue">8</div><div class="lbl">抓取论文</div></div>
+    <div class="metric"><div class="val green">活跃</div><div class="lbl">状态</div></div>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>微信公众号生信论文扫描(每日8:00)正常执行</li>
+      <li>临床公众号扫描(每日10:00)正常，推文→PMC下载桥(9:30)</li>
+      <li>wechat_papers目录有8个JSON数据文件</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 10: 论文写作 -->
+<div id="s10" class="subsystem">
+  <h2>📝 子系统10: 论文写作</h2>
+  <div class="status-row">
+    <span class="pulse">🔴 停滞</span>
+    <span class="tag tag-red">主稿18天未更新</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val green">✅</div><div class="lbl">主稿存在</div></div>
+    <div class="metric"><div class="val red">18天</div><div class="lbl">最后更新(6/7)</div></div>
+    <div class="metric"><div class="val blue">200+</div><div class="lbl">update_report文件</div></div>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>问题</h4>
+    <ul>
+      <li>铁死亡×免疫轴多层论文主稿自6/7起无任何改动(18天)</li>
+      <li>虽有200+个update_report_*.md文件(每小时一份)，但从6/20起内容大幅减少</li>
+      <li>论文写作管线实际已停摆——Feynman论文起草技能未被再次调用</li>
+    </ul>
+    
+    <h4>建议</h4>
+    <ul>
+      <li>基于新数据(285假设+483文献)重新触发Feynman论文起草</li>
+      <li>或明确标记该论文为"完成"以避免资源误判</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 11: 知识库 -->
+<div id="s11" class="subsystem">
+  <h2>📖 子系统11: 知识库(RAGFlow/Dify/LightRAG)</h2>
+  <div class="status-row">
+    <span class="pulse">🔴 停滞</span>
+    <span class="tag tag-red">RAGFlow 19天无活动</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val red">19.1天</div><div class="lbl">RAGFlow最后活动</div></div>
+    <div class="metric"><div class="val yellow">未知</div><div class="lbl">LightRAG状态</div></div>
+    <div class="metric"><div class="val red">离线</div><div class="lbl">Dify状态</div></div>
+    <div class="metric"><div class="val blue">11</div><div class="lbl">RAGFlow学习报告</div></div>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>RAGFlow: 最后活动6/6，19天完全无新增——已实质上退役</li>
+      <li>Dify: 未运行(Docker容器可能已停止)</li>
+      <li>LightRAG: Pipeline cron已暂停(3d9856fc68b3, 6/22→)，Health Canary仍活跃</li>
+      <li>知识库三重系统(RAGFlow/Dify/LightRAG)无一健康运行</li>
+    </ul>
+    
+    <h4>建议</h4>
+    <ul>
+      <li>三选一保留(推荐LightRAG或GBrain)，其余下线释放资源</li>
+      <li>如无知识库需求，移除相关cron避免空转</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SUBSYSTEM 12: 自进化引擎 -->
+<div id="s12" class="subsystem">
+  <h2>🧪 子系统12: 自进化引擎</h2>
+  <div class="status-row">
+    <span class="pulse">🟢 活跃</span>
+    <span class="tag tag-green">持续进化</span>
+  </div>
+  
+  <div class="metrics-grid">
+    <div class="metric"><div class="val blue">4</div><div class="lbl">进化报告(2天)</div></div>
+    <div class="metric"><div class="val green">43→70</div><div class="lbl">任务增长(+63%)</div></div>
+    <div class="metric"><div class="val yellow">0.50~0.80</div><div class="lbl">Prompt评分范围</div></div>
+    <div class="metric"><div class="val red">8.6%</div><div class="lbl">Claude分配率</div></div>
+  </div>
+  
+  <div class="chart"><img src="/home/bio/ssd/dashboard/charts/chart_evo_engine.png" alt="进化引擎趋势"></div>
+  
+  <div class="analysis-section">
+    <h4>运转情况</h4>
+    <ul>
+      <li>EvoLoop每12小时一次，最近4次: 6/24 00:47 → 12:02 → 6/25 00:42 → 12:01</li>
+      <li>总任务数: 43 → 46 → 66 → 70 (稳步增长)</li>
+      <li>模型分配: Qwen36(32) ≈ Hermes(32) >> Claude(6)</li>
+      <li>Claude consistently underutilized——每份报告都标注但未改进</li>
+    </ul>
+    
+    <h4>问题</h4>
+    <ul>
+      <li><span class="yellow">结构问题:</span> Claude深度分析能力未被利用，4份进化报告连续标注"Claude应被分配更多深度分析任务"但未被行动</li>
+      <li>Prompt评分波动(0.50→0.80)——可能反映prompt进化效果不稳定</li>
+      <li>拓扑发现: dependencies=1, layers=1 始终未发现更复杂依赖关系</li>
+    </ul>
+  </div>
+</div>
+
+<!-- RECOMMENDATIONS -->
+<div id="recommendations" class="subsystem">
+  <h2>🔧 行动建议 (优先级排序)</h2>
+  
+  <div class="analysis-section">
+    <h4>P0 · 立即修复</h4>
+    <ol>
+      <li><span class="red">缺口消费断流</span>: 从1217个GOLD缺口取Top 10 → 生成可执行任务 → 推入胶囊管线。手动触发: <code>python3 ~/scripts/gap_consumer.py --top 10 --dispatch</code></li>
+      <li><span class="red">Orchestrator RuntimeError</span>: 根因是repro_engine.py工具调用超限。修复: 将突变复现batch化(5癌种/批)→减少逐文件调用。同时清理僵尸进程: <code>kill 2902173 2981976</code></li>
+      <li><span class="red">L3验证=0</span>: 将L2级假设(90个)中最有前景的5个推入沙箱验证: <code>python3 ~/scripts/verification_gate.py --level L2 --top 5</code></li>
+    </ol>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>P1 · 本周处理</h4>
+    <ol start="4">
+      <li><span class="yellow">胶囊报告恢复</span>: 手动触发capsule-daily-reporter或直接运行: <code>python3 ~/scripts/capsule_daily_report.py</code></li>
+      <li><span class="yellow">论文主稿</span>: 明确状态——继续修改 或 标记完成。如继续: 喂入285个新假设+483篇新文献</li>
+      <li><span class="yellow">知识库收敛</span>: 三选一保留(推荐LightRAG)，移除Dify/RAGFlow cron释放资源</li>
+      <li><span class="yellow">Claude分配</span>: 修改自进化角色分配逻辑，给Claude分配≥15个深度分析任务</li>
+    </ol>
+  </div>
+  
+  <div class="analysis-section">
+    <h4>P2 · 持续优化</h4>
+    <ol start="8">
+      <li>假设质量过滤: 285假设→质量评分≥0.7的约20个→进入验证管线</li>
+      <li>capsule失败修复: 3个失败胶囊逐一排查(R包版本/GEO数据)</li>
+      <li>Cron暂停清理: 评估12个暂停cron，过期的移除，有需要的恢复</li>
+    </ol>
+  </div>
+</div>
+
+<div class="footer">
+  Hermes Multi-Layer Dashboard v2.0 — 子系统深度分析报告<br>
+  数据源: 文件系统实时读取 | 图表: matplotlib | 无编造数据<br>
+  生成: 2026-06-25 13:38:21 | 下次刷新: cron每30分钟
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes 多层监控面板</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'SF Mono','Fira Code','Cascadia Code',monospace; background:#0d1117; color:#c9d1d9; padding:20px; }
+.header { text-align:center; margin-bottom:30px; border-bottom:1px solid #30363d; padding-bottom:15px; }
+.header h1 { color:#58a6ff; font-size:1.6em; }
+.header .meta { color:#8b949e; font-size:0.85em; margin-top:5px; }
+.health-bar { display:flex; gap:20px; justify-content:center; margin:15px 0; }
+.health-bar span { font-size:1.3em; }
+.tabs { display:flex; gap:5px; margin-bottom:20px; flex-wrap:wrap; }
+.tab { padding:8px 16px; background:#161b22; border:1px solid #30363d; border-radius:6px; cursor:pointer; color:#8b949e; font-size:0.85em; }
+.tab.active { background:#1f6feb; color:#fff; border-color:#1f6feb; }
+.tab:hover { border-color:#58a6ff; }
+.layer { display:none; }
+.layer.active { display:block; }
+/* L0: Grid */
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:15px; }
+.card { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:15px; }
+.card.pulse-green { border-left:3px solid #3fb950; }
+.card.pulse-yellow { border-left:3px solid #d29922; }
+.card.pulse-red { border-left:3px solid #f85149; }
+.card.pulse-black { border-left:3px solid #484f58; }
+.card .icon { font-size:1.5em; }
+.card .name { font-weight:bold; color:#58a6ff; margin:8px 0; }
+.card .metric { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #21262d; font-size:0.85em; }
+.card .metric .key { color:#8b949e; }
+.card .metric .val { color:#c9d1d9; font-weight:bold; }
+.card .metric:last-child { border-bottom:none; }
+/* L1: Detail */
+.detail { margin-bottom:20px; }
+.detail-header { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:15px; margin-bottom:10px; }
+.detail-header h2 { color:#58a6ff; }
+.detail-metrics { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px; margin:10px 0; }
+.detail-metric { background:#0d1117; border:1px solid #21262d; border-radius:6px; padding:10px; text-align:center; }
+.detail-metric .val { font-size:1.4em; font-weight:bold; color:#c9d1d9; }
+.detail-metric .label { font-size:0.8em; color:#8b949e; }
+.detail-links { font-size:0.85em; color:#58a6ff; }
+.detail-links a { color:#58a6ff; }
+/* L2: Table */
+.report-table { width:100%; border-collapse:collapse; }
+.report-table th { background:#161b22; padding:8px 12px; text-align:left; border-bottom:1px solid #30363d; color:#58a6ff; font-size:0.85em; }
+.report-table td { padding:8px 12px; border-bottom:1px solid #21262d; font-size:0.82em; }
+.report-table tr:hover { background:#1c2128; }
+.report-table .subsys-tag { display:inline-block; padding:2px 6px; border-radius:3px; font-size:0.75em; background:#1f6feb22; color:#58a6ff; }
+.footer { margin-top:30px; text-align:center; color:#484f58; font-size:0.8em; border-top:1px solid #30363d; padding-top:15px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔬 Hermes 多层监控面板</h1>
+  <div class="health-bar">
+    <span>🟢 7</span> <span>🟡 3</span> <span>🔴 2</span> <span>⚫ 0</span>
+  </div>
+  <div class="meta">
+    刷新: 2026-06-25 19:00:20 | 
+    总报告: 100份 | 
+    子系统: 12
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchLayer('L0')">L0 · 总览</div>
+  <div class="tab" onclick="switchLayer('L1')">L1 · 子系统详情</div>
+  <div class="tab" onclick="switchLayer('L2')">L2 · 报告索引</div>
+  <a href="subsystem_analysis_report.html" target="_blank" style="padding:8px 16px; background:#238636; border-radius:6px; color:#fff; text-decoration:none; font-size:0.85em; margin-left:auto;">📊 深度分析报告</a>
+</div>
+
+<!-- L0: Master Overview -->
+<div id="L0" class="layer active">
+  <div class="grid">
+
+    <div class="card pulse-green">
+      <div class="icon">📚 🟢</div>
+      <div class="name">文献管道</div>
+      <div class="metric"><span class="key">PDF磁盘数</span><span class="val">487</span></div>
+      <div class="metric"><span class="key">最后变动</span><span class="val">13分</span></div>
+      <div class="metric"><span class="key">今日新增</span><span class="val">?</span></div>
+      <div class="metric"><span class="key">批次状态</span><span class="val">?</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/pdf_pipeline_logs" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-green">
+      <div class="icon">🧠 🟢</div>
+      <div class="name">GBrain</div>
+      <div class="metric"><span class="key">知识页数</span><span class="val">0</span></div>
+      <div class="metric"><span class="key">最后活动</span><span class="val">1.8时</span></div>
+      <div class="metric"><span class="key">Autopilot进程</span><span class="val">2个</span></div>
+      <div class="metric"><span class="key">脑分数</span><span class="val">90</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/.gbrain/audit" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-green">
+      <div class="icon">🔬 🟢</div>
+      <div class="name">科研闭环</div>
+      <div class="metric"><span class="key">活跃假设</span><span class="val">50</span></div>
+      <div class="metric"><span class="key">L3验证通过</span><span class="val">5个</span></div>
+      <div class="metric"><span class="key">胶囊通过</span><span class="val">6个</span></div>
+      <div class="metric"><span class="key">L2验证</span><span class="val">92</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/evolution_logs" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-yellow">
+      <div class="icon">🕳️ 🟡</div>
+      <div class="name">缺口消费</div>
+      <div class="metric"><span class="key">缺口评分</span><span class="val">1217/1217</span></div>
+      <div class="metric"><span class="key">批次产出</span><span class="val">30</span></div>
+      <div class="metric"><span class="key">队列任务</span><span class="val">0</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/gap_consumption" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-green">
+      <div class="icon">💊 🟢</div>
+      <div class="name">胶囊复现</div>
+      <div class="metric"><span class="key">总胶囊</span><span class="val">66</span></div>
+      <div class="metric"><span class="key">✅Docker通过</span><span class="val">6</span></div>
+      <div class="metric"><span class="key">❌失败</span><span class="val">22</span></div>
+      <div class="metric"><span class="key">⏭跳过</span><span class="val">7</span></div>
+      <div class="metric"><span class="key">通过率</span><span class="val">21%</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/capsule_results" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-green">
+      <div class="icon">🧬 🟢</div>
+      <div class="name">管线运行</div>
+      <div class="metric"><span class="key">铁死亡管线</span><span class="val">7文件</span></div>
+      <div class="metric"><span class="key">TCGA缓存</span><span class="val">0文件</span></div>
+      <div class="metric"><span class="key">MR结果</span><span class="val">5文件</span></div>
+      <div class="metric"><span class="key">最后活动</span><span class="val">0分</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/unified_repro" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-yellow">
+      <div class="icon">🏥 🟡</div>
+      <div class="name">临床KB</div>
+      <div class="metric"><span class="key">ChromaDB</span><span class="val">✅在线</span></div>
+      <div class="metric"><span class="key">数据库数</span><span class="val">16</span></div>
+      <div class="metric"><span class="key">最后活动</span><span class="val">1.1天</span></div>
+      <div class="metric"><span class="key">今日选题</span><span class="val">?</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/clinical_chroma" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-red">
+      <div class="icon">⚙️ 🔴</div>
+      <div class="name">Cron调度</div>
+      <div class="metric"><span class="key">活跃任务</span><span class="val">70</span></div>
+      <div class="metric"><span class="key">暂停任务</span><span class="val">12</span></div>
+      <div class="metric"><span class="key">运行错误</span><span class="val">4</span></div>
+      <div class="metric"><span class="key">调度日志</span><span class="val">无数据</span></div>
+      <div class="metric"><span class="key">健康度</span><span class="val">🔴4错</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/.hermes/logs" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-green">
+      <div class="icon">📱 🟢</div>
+      <div class="name">推文监控</div>
+      <div class="metric"><span class="key">抓取论文</span><span class="val">8</span></div>
+      <div class="metric"><span class="key">最后抓取</span><span class="val">17.0时</span></div>
+      <div class="metric"><span class="key">状态</span><span class="val">🟢活跃</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/wechat_papers" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-red">
+      <div class="icon">📝 🔴</div>
+      <div class="name">论文写作</div>
+      <div class="metric"><span class="key">主稿</span><span class="val">✅</span></div>
+      <div class="metric"><span class="key">更新报告</span><span class="val">377</span></div>
+      <div class="metric"><span class="key">最后更新</span><span class="val">18.5天</span></div>
+      <div class="metric"><span class="key">版本数</span><span class="val">423</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/paper_drafts" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-yellow">
+      <div class="icon">📖 🟡</div>
+      <div class="name">知识库</div>
+      <div class="metric"><span class="key">GBrain</span><span class="val">0页</span></div>
+      <div class="metric"><span class="key">LightRAG</span><span class="val">9.3天</span></div>
+      <div class="metric"><span class="key">RAGFlow</span><span class="val">已退役</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/lightrag" target="_blank">报告目录</a></div>
+    </div>
+
+    <div class="card pulse-green">
+      <div class="icon">🧪 🟢</div>
+      <div class="name">自进化引擎</div>
+      <div class="metric"><span class="key">进化报告</span><span class="val">5</span></div>
+      <div class="metric"><span class="key">最后进化</span><span class="val">3.5时</span></div>
+      <div class="metric"><span class="key">本次行动</span><span class="val">3条</span></div>
+      <div class="detail-links" style="margin-top:8px;font-size:0.8em;">📂 <a href="file:///home/bio/ssd/evo_loop" target="_blank">报告目录</a></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- L1: Subsystem Detail -->
+<div id="L1" class="layer">
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>📚 🟢 文献管道</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">487</div><div class="label">PDF磁盘数</div></div>
+        <div class="detail-metric"><div class="val">13分</div><div class="label">最后变动</div></div>
+        <div class="detail-metric"><div class="val">?</div><div class="label">今日新增</div></div>
+        <div class="detail-metric"><div class="val">?</div><div class="label">批次状态</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/pdf_pipeline_logs" target="_blank">/home/bio/ssd/pdf_pipeline_logs</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/literature_daily.json" target="_blank">/home/bio/ssd/literature_daily.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/epmc_batch.json" target="_blank">/home/bio/ssd/epmc_batch.json</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>🧠 🟢 GBrain</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">0</div><div class="label">知识页数</div></div>
+        <div class="detail-metric"><div class="val">1.8时</div><div class="label">最后活动</div></div>
+        <div class="detail-metric"><div class="val">2个</div><div class="label">Autopilot进程</div></div>
+        <div class="detail-metric"><div class="val">90</div><div class="label">脑分数</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/.gbrain/audit" target="_blank">/home/bio/.gbrain/audit</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/gbrain_daily.json" target="_blank">/home/bio/ssd/gbrain_daily.json</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>🔬 🟢 科研闭环</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">50</div><div class="label">活跃假设</div></div>
+        <div class="detail-metric"><div class="val">5个</div><div class="label">L3验证通过</div></div>
+        <div class="detail-metric"><div class="val">6个</div><div class="label">胶囊通过</div></div>
+        <div class="detail-metric"><div class="val">92</div><div class="label">L2验证</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/evolution_logs" target="_blank">/home/bio/ssd/evolution_logs</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/verification_gate.json" target="_blank">/home/bio/ssd/verification_gate.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/active_hypotheses.json" target="_blank">/home/bio/ssd/active_hypotheses.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/hypothesis_evidence_daily.json" target="_blank">/home/bio/ssd/hypothesis_evidence_daily.json</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>🕳️ 🟡 缺口消费</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">1217/1217</div><div class="label">缺口评分</div></div>
+        <div class="detail-metric"><div class="val">30</div><div class="label">批次产出</div></div>
+        <div class="detail-metric"><div class="val">0</div><div class="label">队列任务</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/gap_consumption" target="_blank">/home/bio/ssd/gap_consumption</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/capability_gaps.json" target="_blank">/home/bio/ssd/capability_gaps.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/research_gaps.json" target="_blank">/home/bio/ssd/research_gaps.json</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>💊 🟢 胶囊复现</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">66</div><div class="label">总胶囊</div></div>
+        <div class="detail-metric"><div class="val">6</div><div class="label">✅Docker通过</div></div>
+        <div class="detail-metric"><div class="val">22</div><div class="label">❌失败</div></div>
+        <div class="detail-metric"><div class="val">7</div><div class="label">⏭跳过</div></div>
+        <div class="detail-metric"><div class="val">21%</div><div class="label">通过率</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/capsule_results" target="_blank">/home/bio/ssd/capsule_results</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/capsule_catalog.json" target="_blank">/home/bio/ssd/capsule_catalog.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/capsule_results.json" target="_blank">/home/bio/ssd/capsule_results.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/capsule_daily_report.md" target="_blank">/home/bio/ssd/capsule_daily_report.md</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>🧬 🟢 管线运行</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">7文件</div><div class="label">铁死亡管线</div></div>
+        <div class="detail-metric"><div class="val">0文件</div><div class="label">TCGA缓存</div></div>
+        <div class="detail-metric"><div class="val">5文件</div><div class="label">MR结果</div></div>
+        <div class="detail-metric"><div class="val">0分</div><div class="label">最后活动</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/unified_repro" target="_blank">/home/bio/ssd/unified_repro</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/pipeline_state.json" target="_blank">/home/bio/ssd/pipeline_state.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/unified_loop_state.json" target="_blank">/home/bio/ssd/unified_loop_state.json</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>🏥 🟡 临床KB</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">✅在线</div><div class="label">ChromaDB</div></div>
+        <div class="detail-metric"><div class="val">16</div><div class="label">数据库数</div></div>
+        <div class="detail-metric"><div class="val">1.1天</div><div class="label">最后活动</div></div>
+        <div class="detail-metric"><div class="val">?</div><div class="label">今日选题</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/clinical_chroma" target="_blank">/home/bio/ssd/clinical_chroma</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/clinical_db_daily.json" target="_blank">/home/bio/ssd/clinical_db_daily.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/clinical_plan.json" target="_blank">/home/bio/ssd/clinical_plan.json</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>⚙️ 🔴 Cron调度</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">70</div><div class="label">活跃任务</div></div>
+        <div class="detail-metric"><div class="val">12</div><div class="label">暂停任务</div></div>
+        <div class="detail-metric"><div class="val">4</div><div class="label">运行错误</div></div>
+        <div class="detail-metric"><div class="val">无数据</div><div class="label">调度日志</div></div>
+        <div class="detail-metric"><div class="val">🔴4错</div><div class="label">健康度</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/.hermes/logs" target="_blank">/home/bio/.hermes/logs</a><br>
+        📄 数据文件: <a href="file:///home/bio/.hermes/logs/scheduler.log" target="_blank">/home/bio/.hermes/logs/scheduler.log</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>📱 🟢 推文监控</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">8</div><div class="label">抓取论文</div></div>
+        <div class="detail-metric"><div class="val">17.0时</div><div class="label">最后抓取</div></div>
+        <div class="detail-metric"><div class="val">🟢活跃</div><div class="label">状态</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/wechat_papers" target="_blank">/home/bio/ssd/wechat_papers</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>📝 🔴 论文写作</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">✅</div><div class="label">主稿</div></div>
+        <div class="detail-metric"><div class="val">377</div><div class="label">更新报告</div></div>
+        <div class="detail-metric"><div class="val">18.5天</div><div class="label">最后更新</div></div>
+        <div class="detail-metric"><div class="val">423</div><div class="label">版本数</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/paper_drafts" target="_blank">/home/bio/ssd/paper_drafts</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/paper_drafts/ferroptosis_immune_axis_multilayer_paper.md" target="_blank">/home/bio/ssd/paper_drafts/ferroptosis_immune_axis_multilayer_paper.md</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>📖 🟡 知识库</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">0页</div><div class="label">GBrain</div></div>
+        <div class="detail-metric"><div class="val">9.3天</div><div class="label">LightRAG</div></div>
+        <div class="detail-metric"><div class="val">已退役</div><div class="label">RAGFlow</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/lightrag" target="_blank">/home/bio/ssd/lightrag</a><br>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="detail">
+    <div class="detail-header">
+      <h2>🧪 🟢 自进化引擎</h2>
+      <div class="detail-metrics">
+        <div class="detail-metric"><div class="val">5</div><div class="label">进化报告</div></div>
+        <div class="detail-metric"><div class="val">3.5时</div><div class="label">最后进化</div></div>
+        <div class="detail-metric"><div class="val">3条</div><div class="label">本次行动</div></div>
+
+      </div>
+      <div class="detail-links">
+        📂 报告目录: <a href="file:///home/bio/ssd/evo_loop" target="_blank">/home/bio/ssd/evo_loop</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/unified_loop_state.json" target="_blank">/home/bio/ssd/unified_loop_state.json</a><br>
+        📄 数据文件: <a href="file:///home/bio/ssd/evolution_state.json" target="_blank">/home/bio/ssd/evolution_state.json</a><br>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- L2: Report Index -->
+<div id="L2" class="layer">
+  <table class="report-table">
+    <thead>
+      <tr><th>时间</th><th>子系统</th><th>报告</th><th>大小</th><th>路径</th></tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td>06-25 18:01</td>
+        <td><span class="subsys-tag">监控面板</span></td>
+        <td><a href="file:///home/bio/ssd/health_report.json" target="_blank" style="color:#58a6ff;">health_report.json</a></td>
+        <td>6.7KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/health_report.json</td>
+      </tr>
+      <tr>
+        <td>06-25 18:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1800.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1800.md</a></td>
+        <td>0.8KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1800.md</td>
+      </tr>
+      <tr>
+        <td>06-25 17:17</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1717.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1717.md</a></td>
+        <td>0.8KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1717.md</td>
+      </tr>
+      <tr>
+        <td>06-25 17:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1700.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1700.md</a></td>
+        <td>0.8KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1700.md</td>
+      </tr>
+      <tr>
+        <td>06-25 16:04</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1604.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1604.md</a></td>
+        <td>0.9KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1604.md</td>
+      </tr>
+      <tr>
+        <td>06-25 15:31</td>
+        <td><span class="subsys-tag">自进化引擎</span></td>
+        <td><a href="file:///home/bio/ssd/evo_loop/evo_report_20260625_1531.json" target="_blank" style="color:#58a6ff;">evo_report_20260625_1531.json</a></td>
+        <td>1.0KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/evo_loop/evo_report_20260625_1531.json</td>
+      </tr>
+      <tr>
+        <td>06-25 15:18</td>
+        <td><span class="subsys-tag">自进化引擎</span></td>
+        <td><a href="file:///home/bio/ssd/evolution_logs/daily_log.md" target="_blank" style="color:#58a6ff;">daily_log.md</a></td>
+        <td>34.5KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/evolution_logs/daily_log.md</td>
+      </tr>
+      <tr>
+        <td>06-25 15:17</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1517.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1517.md</a></td>
+        <td>0.9KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1517.md</td>
+      </tr>
+      <tr>
+        <td>06-25 14:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1400.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1400.md</a></td>
+        <td>0.8KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1400.md</td>
+      </tr>
+      <tr>
+        <td>06-25 13:49</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1349.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1349.md</a></td>
+        <td>0.8KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1349.md</td>
+      </tr>
+      <tr>
+        <td>06-25 12:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1201.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1201.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1201.md</td>
+      </tr>
+      <tr>
+        <td>06-25 12:01</td>
+        <td><span class="subsys-tag">自进化引擎</span></td>
+        <td><a href="file:///home/bio/ssd/evo_loop/evo_report_20260625_1201.json" target="_blank" style="color:#58a6ff;">evo_report_20260625_1201.json</a></td>
+        <td>0.7KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/evo_loop/evo_report_20260625_1201.json</td>
+      </tr>
+      <tr>
+        <td>06-25 11:48</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1148.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1148.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1148.md</td>
+      </tr>
+      <tr>
+        <td>06-25 11:16</td>
+        <td><span class="subsys-tag">科研闭环</span></td>
+        <td><a href="file:///home/bio/ssd/contradiction_report.json" target="_blank" style="color:#58a6ff;">contradiction_report.json</a></td>
+        <td>3.3KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/contradiction_report.json</td>
+      </tr>
+      <tr>
+        <td>06-25 11:09</td>
+        <td><span class="subsys-tag">胶囊复现</span></td>
+        <td><a href="file:///home/bio/ssd/research_briefs/reproductions/2026-06-25_report.md" target="_blank" style="color:#58a6ff;">2026-06-25_report.md</a></td>
+        <td>5.6KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/research_briefs/reproductions/2026-06-25_report.md</td>
+      </tr>
+      <tr>
+        <td>06-25 11:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1101.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1101.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1101.md</td>
+      </tr>
+      <tr>
+        <td>06-25 10:48</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1048.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1048.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1048.md</td>
+      </tr>
+      <tr>
+        <td>06-25 10:15</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_1015.md" target="_blank" style="color:#58a6ff;">update_report_20260625_1015.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_1015.md</td>
+      </tr>
+      <tr>
+        <td>06-25 09:48</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0948.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0948.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0948.md</td>
+      </tr>
+      <tr>
+        <td>06-25 09:19</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0919.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0919.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0919.md</td>
+      </tr>
+      <tr>
+        <td>06-25 08:48</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0848.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0848.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0848.md</td>
+      </tr>
+      <tr>
+        <td>06-25 08:20</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0820.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0820.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0820.md</td>
+      </tr>
+      <tr>
+        <td>06-25 08:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0807.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0807.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0807.md</td>
+      </tr>
+      <tr>
+        <td>06-25 08:04</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0804.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0804.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0804.md</td>
+      </tr>
+      <tr>
+        <td>06-25 07:14</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0714.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0714.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0714.md</td>
+      </tr>
+      <tr>
+        <td>06-25 07:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0707.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0707.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0707.md</td>
+      </tr>
+      <tr>
+        <td>06-25 06:14</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0614.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0614.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0614.md</td>
+      </tr>
+      <tr>
+        <td>06-25 06:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0607.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0607.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0607.md</td>
+      </tr>
+      <tr>
+        <td>06-25 05:15</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0515.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0515.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0515.md</td>
+      </tr>
+      <tr>
+        <td>06-25 05:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0507.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0507.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0507.md</td>
+      </tr>
+      <tr>
+        <td>06-25 04:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0407.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0407.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0407.md</td>
+      </tr>
+      <tr>
+        <td>06-25 04:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0401.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0401.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0401.md</td>
+      </tr>
+      <tr>
+        <td>06-25 03:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0307.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0307.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0307.md</td>
+      </tr>
+      <tr>
+        <td>06-25 03:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0301.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0301.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0301.md</td>
+      </tr>
+      <tr>
+        <td>06-25 02:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0207.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0207.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0207.md</td>
+      </tr>
+      <tr>
+        <td>06-25 02:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0201.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0201.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0201.md</td>
+      </tr>
+      <tr>
+        <td>06-25 01:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0107.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0107.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0107.md</td>
+      </tr>
+      <tr>
+        <td>06-25 01:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0101.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0101.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0101.md</td>
+      </tr>
+      <tr>
+        <td>06-25 00:42</td>
+        <td><span class="subsys-tag">自进化引擎</span></td>
+        <td><a href="file:///home/bio/ssd/evo_loop/evo_report_20260625_0042.json" target="_blank" style="color:#58a6ff;">evo_report_20260625_0042.json</a></td>
+        <td>0.7KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/evo_loop/evo_report_20260625_0042.json</td>
+      </tr>
+      <tr>
+        <td>06-25 00:14</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0014.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0014.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0014.md</td>
+      </tr>
+      <tr>
+        <td>06-25 00:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260625_0007.md" target="_blank" style="color:#58a6ff;">update_report_20260625_0007.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260625_0007.md</td>
+      </tr>
+      <tr>
+        <td>06-24 23:14</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_2314.md" target="_blank" style="color:#58a6ff;">update_report_20260624_2314.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_2314.md</td>
+      </tr>
+      <tr>
+        <td>06-24 23:07</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_2307.md" target="_blank" style="color:#58a6ff;">update_report_20260624_2307.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_2307.md</td>
+      </tr>
+      <tr>
+        <td>06-24 22:06</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_2206.md" target="_blank" style="color:#58a6ff;">update_report_20260624_2206.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_2206.md</td>
+      </tr>
+      <tr>
+        <td>06-24 22:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_2200.md" target="_blank" style="color:#58a6ff;">update_report_20260624_2200.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_2200.md</td>
+      </tr>
+      <tr>
+        <td>06-24 21:06</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_2106.md" target="_blank" style="color:#58a6ff;">update_report_20260624_2106.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_2106.md</td>
+      </tr>
+      <tr>
+        <td>06-24 21:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_2101.md" target="_blank" style="color:#58a6ff;">update_report_20260624_2101.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_2101.md</td>
+      </tr>
+      <tr>
+        <td>06-24 20:06</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_2006.md" target="_blank" style="color:#58a6ff;">update_report_20260624_2006.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_2006.md</td>
+      </tr>
+      <tr>
+        <td>06-24 20:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_2000.md" target="_blank" style="color:#58a6ff;">update_report_20260624_2000.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_2000.md</td>
+      </tr>
+      <tr>
+        <td>06-24 19:30</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1930.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1930.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1930.md</td>
+      </tr>
+      <tr>
+        <td>06-24 19:29</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1929.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1929.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1929.md</td>
+      </tr>
+      <tr>
+        <td>06-24 19:06</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1906.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1906.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1906.md</td>
+      </tr>
+      <tr>
+        <td>06-24 19:05</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1905.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1905.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1905.md</td>
+      </tr>
+      <tr>
+        <td>06-24 19:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1900.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1900.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1900.md</td>
+      </tr>
+      <tr>
+        <td>06-24 18:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1859.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1859.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1859.md</td>
+      </tr>
+      <tr>
+        <td>06-24 18:14</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1814.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1814.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1814.md</td>
+      </tr>
+      <tr>
+        <td>06-24 17:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1759.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1759.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1759.md</td>
+      </tr>
+      <tr>
+        <td>06-24 17:15</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1715.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1715.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1715.md</td>
+      </tr>
+      <tr>
+        <td>06-24 16:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1659.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1659.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1659.md</td>
+      </tr>
+      <tr>
+        <td>06-24 16:14</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1614.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1614.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1614.md</td>
+      </tr>
+      <tr>
+        <td>06-24 15:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1559.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1559.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1559.md</td>
+      </tr>
+      <tr>
+        <td>06-24 15:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1501.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1501.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1501.md</td>
+      </tr>
+      <tr>
+        <td>06-24 14:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1459.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1459.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1459.md</td>
+      </tr>
+      <tr>
+        <td>06-24 14:05</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1405.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1405.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1405.md</td>
+      </tr>
+      <tr>
+        <td>06-24 13:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1359.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1359.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1359.md</td>
+      </tr>
+      <tr>
+        <td>06-24 13:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1300.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1300.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1300.md</td>
+      </tr>
+      <tr>
+        <td>06-24 12:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1259.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1259.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1259.md</td>
+      </tr>
+      <tr>
+        <td>06-24 12:02</td>
+        <td><span class="subsys-tag">自进化引擎</span></td>
+        <td><a href="file:///home/bio/ssd/evo_loop/evo_report_20260624_1202.json" target="_blank" style="color:#58a6ff;">evo_report_20260624_1202.json</a></td>
+        <td>0.7KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/evo_loop/evo_report_20260624_1202.json</td>
+      </tr>
+      <tr>
+        <td>06-24 12:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1201.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1201.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1201.md</td>
+      </tr>
+      <tr>
+        <td>06-24 11:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1159.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1159.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1159.md</td>
+      </tr>
+      <tr>
+        <td>06-24 11:16</td>
+        <td><span class="subsys-tag">胶囊复现</span></td>
+        <td><a href="file:///home/bio/ssd/research_briefs/reproductions/2026-06-24_report.md" target="_blank" style="color:#58a6ff;">2026-06-24_report.md</a></td>
+        <td>4.4KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/research_briefs/reproductions/2026-06-24_report.md</td>
+      </tr>
+      <tr>
+        <td>06-24 11:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1100.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1100.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1100.md</td>
+      </tr>
+      <tr>
+        <td>06-24 10:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_1059.md" target="_blank" style="color:#58a6ff;">update_report_20260624_1059.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_1059.md</td>
+      </tr>
+      <tr>
+        <td>06-24 09:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0959.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0959.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0959.md</td>
+      </tr>
+      <tr>
+        <td>06-24 09:33</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0933.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0933.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0933.md</td>
+      </tr>
+      <tr>
+        <td>06-24 08:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0859.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0859.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0859.md</td>
+      </tr>
+      <tr>
+        <td>06-24 08:22</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0822.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0822.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0822.md</td>
+      </tr>
+      <tr>
+        <td>06-24 08:21</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0821.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0821.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0821.md</td>
+      </tr>
+      <tr>
+        <td>06-24 07:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0759.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0759.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0759.md</td>
+      </tr>
+      <tr>
+        <td>06-24 07:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0700.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0700.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0700.md</td>
+      </tr>
+      <tr>
+        <td>06-24 06:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0659.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0659.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0659.md</td>
+      </tr>
+      <tr>
+        <td>06-24 06:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0600.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0600.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0600.md</td>
+      </tr>
+      <tr>
+        <td>06-24 05:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0559.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0559.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0559.md</td>
+      </tr>
+      <tr>
+        <td>06-24 05:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0500.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0500.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0500.md</td>
+      </tr>
+      <tr>
+        <td>06-24 04:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0459.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0459.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0459.md</td>
+      </tr>
+      <tr>
+        <td>06-24 04:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0400.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0400.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0400.md</td>
+      </tr>
+      <tr>
+        <td>06-24 03:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0359.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0359.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0359.md</td>
+      </tr>
+      <tr>
+        <td>06-24 03:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0301.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0301.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0301.md</td>
+      </tr>
+      <tr>
+        <td>06-24 02:59</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0259.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0259.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0259.md</td>
+      </tr>
+      <tr>
+        <td>06-24 02:37</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0237.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0237.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0237.md</td>
+      </tr>
+      <tr>
+        <td>06-24 02:01</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0201.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0201.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0201.md</td>
+      </tr>
+      <tr>
+        <td>06-24 01:37</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0137.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0137.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0137.md</td>
+      </tr>
+      <tr>
+        <td>06-24 01:14</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0114.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0114.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0114.md</td>
+      </tr>
+      <tr>
+        <td>06-24 00:47</td>
+        <td><span class="subsys-tag">自进化引擎</span></td>
+        <td><a href="file:///home/bio/ssd/evo_loop/evo_report_20260624_0047.json" target="_blank" style="color:#58a6ff;">evo_report_20260624_0047.json</a></td>
+        <td>0.7KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/evo_loop/evo_report_20260624_0047.json</td>
+      </tr>
+      <tr>
+        <td>06-24 00:37</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0037.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0037.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0037.md</td>
+      </tr>
+      <tr>
+        <td>06-24 00:16</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260624_0016.md" target="_blank" style="color:#58a6ff;">update_report_20260624_0016.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260624_0016.md</td>
+      </tr>
+      <tr>
+        <td>06-23 23:37</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260623_2337.md" target="_blank" style="color:#58a6ff;">update_report_20260623_2337.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260623_2337.md</td>
+      </tr>
+      <tr>
+        <td>06-23 23:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260623_2300.md" target="_blank" style="color:#58a6ff;">update_report_20260623_2300.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260623_2300.md</td>
+      </tr>
+      <tr>
+        <td>06-23 22:36</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260623_2236.md" target="_blank" style="color:#58a6ff;">update_report_20260623_2236.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260623_2236.md</td>
+      </tr>
+      <tr>
+        <td>06-23 22:00</td>
+        <td><span class="subsys-tag">论文写作</span></td>
+        <td><a href="file:///home/bio/ssd/paper_drafts/update_report_20260623_2200.md" target="_blank" style="color:#58a6ff;">update_report_20260623_2200.md</a></td>
+        <td>1.1KB</td>
+        <td style="font-size:0.75em;color:#8b949e;">/home/bio/ssd/paper_drafts/update_report_20260623_2200.md</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">
+  Hermes Multi-Layer Dashboard v2.0 · 数据源: 文件系统实时读取 · 无编造数字
+</div>
+
+<script>
+function switchLayer(layer) {
+  document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(layer).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

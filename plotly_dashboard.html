@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Plotly Live Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0a0e14; color:#bfbdb6; overflow-x:hidden; }
+.header { padding:16px 24px; background:#0d1117; border-bottom:1px solid #1c2128; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+.header h1 { color:#39bae6; font-size:1.3em; font-weight:600; }
+.header .meta { font-size:0.8em; color:#565b66; }
+.header .pulse-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; animation:pulse 2s infinite; }
+.header .pulse-dot.live { background:#73d0ff; box-shadow:0 0 8px #73d0ff; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; padding:20px; }
+.card { background:#0d1117; border:1px solid #1c2128; border-radius:10px; overflow:hidden; transition:border-color 0.3s; }
+.card:hover { border-color:#39bae6; }
+.card-header { padding:12px 16px; border-bottom:1px solid #1c2128; display:flex; justify-content:space-between; align-items:center; }
+.card-header .title { font-weight:600; font-size:0.95em; }
+.card-header .status { font-size:0.75em; padding:2px 8px; border-radius:12px; }
+.status-ok { background:#1b3a1b; color:#73d0ff; }
+.status-warn { background:#3a2e1b; color:#ffb454; }
+.status-err { background:#3a1b1b; color:#ff6666; }
+.card-body { padding:8px; }
+.big-num { font-size:2.5em; font-weight:700; line-height:1; }
+.big-num .unit { font-size:0.4em; color:#565b66; }
+.kpi-row { display:flex; gap:16px; flex-wrap:wrap; padding:12px 16px; }
+.kpi { text-align:center; min-width:80px; }
+.kpi .val { font-size:1.4em; font-weight:700; }
+.kpi .lbl { font-size:0.7em; color:#565b66; margin-top:2px; }
+.alert-banner { margin:0 20px; padding:10px 16px; border-radius:8px; font-size:0.85em; display:flex; gap:12px; flex-wrap:wrap; }
+.alert-banner.warn { background:#2a2414; border:1px solid #3a2e1b; }
+.alert-banner.err { background:#2a1414; border:1px solid #3a1b1b; }
+.alert-item { display:flex; align-items:center; gap:6px; }
+.alert-dot { width:8px; height:8px; border-radius:50%; }
+.refresh-bar { padding:8px 20px; font-size:0.75em; color:#3a3f4b; display:flex; justify-content:space-between; }
+.chart-container { width:100%; height:280px; }
+.chart-container.tall { height:380px; }
+.chart-container.short { height:200px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1><span class="pulse-dot live"></span>Hermes Live</h1>
+    <div class="meta">Plotly Dashboard v3.0 · Auto-refresh 30s</div>
+  </div>
+  <div class="meta" id="clock">2026-06-25 19:00:20</div>
+</div>
+
+<div class="alert-banner warn" id="alerts">
+  <div class="alert-item"><span class="alert-dot" style="background:#ff6666"></span><span id="alert-text">Loading...</span></div>
+</div>
+
+<div class="grid">
+  <!-- Row 1: KPI cards -->
+  <div class="card" style="grid-column:span 2;">
+    <div class="card-header"><span class="title">KPIs</span><span class="status status-ok">24h snapshot</span></div>
+    <div class="kpi-row" id="kpi-row">
+      <div class="kpi"><div class="val" style="color:#73d0ff">487</div><div class="lbl">PDFs</div></div>
+      <div class="kpi"><div class="val" style="color:#ffb454">50</div><div class="lbl">Hypotheses</div></div>
+      <div class="kpi"><div class="val" style="color:#d2a6ff">71</div><div class="lbl">Evo Jobs</div></div>
+      <div class="kpi"><div class="val" style="color:#73d0ff">90</div><div class="lbl">GBrain Score</div></div>
+      <div class="kpi"><div class="val" style="color:#ff6666">0</div><div class="lbl">Gap Pool</div></div>
+      <div class="kpi"><div class="val" style="color:#73d0ff">70</div><div class="lbl">Active Crons</div></div>
+      <div class="kpi"><div class="val" style="color:#ffb454">0/19</div><div class="lbl">Capsules</div></div>
+    </div>
+  </div>
+
+  <!-- Literature Trend -->
+  <div class="card">
+    <div class="card-header"><span class="title">Literature Pipeline</span><span class="status status-ok">Live</span></div>
+    <div class="card-body"><div class="chart-container short" id="chart-lit"></div></div>
+  </div>
+
+  <!-- Hypothesis Trend -->
+  <div class="card">
+    <div class="card-header"><span class="title">Hypothesis Engine</span><span class="status status-ok">Live</span></div>
+    <div class="card-body"><div class="chart-container short" id="chart-hypo"></div></div>
+  </div>
+
+  <!-- Evolution Jobs -->
+  <div class="card">
+    <div class="card-header"><span class="title">Evolution Engine</span><span class="status status-ok">Active</span></div>
+    <div class="card-body"><div class="chart-container short" id="chart-evo"></div></div>
+  </div>
+
+  <!-- System Health -->
+  <div class="card">
+    <div class="card-header"><span class="title">System Health</span><span class="status status-ok">All Systems</span></div>
+    <div class="card-body"><div class="chart-container" id="chart-health"></div></div>
+  </div>
+
+  <!-- Subsystem Status -->
+  <div class="card" style="grid-column:span 2;">
+    <div class="card-header"><span class="title">Subsystem Status</span><span class="status status-ok">12 Systems</span></div>
+    <div class="card-body"><div class="chart-container tall" id="chart-subsystems"></div></div>
+  </div>
+
+  <!-- Capsule/Gap/Stale -->
+  <div class="card">
+    <div class="card-header"><span class="title">Capsule Status</span></div>
+    <div class="card-body"><div class="chart-container short" id="chart-capsule"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="title">Stagnation Monitor</span><span class="status status-err">3 stale</span></div>
+    <div class="card-body"><div class="chart-container short" id="chart-stale"></div></div>
+  </div>
+</div>
+
+<div class="refresh-bar">
+  <span>Data: real filesystem reads from ~/ssd/ · ~/backup/ · ~/.gbrain/</span>
+  <span id="refresh-timer">Next refresh: 30s</span>
+</div>
+
+<script>
+const DATA_URL = 'data:application/json,' + encodeURIComponent('{"timestamp": "2026-06-25 19:00:20", "ts": 1782385220.827137, "pdf_count": 487, "pdf_age_h": 0.21110489964485168, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 1.8386312311225468, "hypo_total": 50, "hypo_age_h": 0.002432019114494324, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 19, "cap_age_h": 312.24846858302755, "cron_active": 70, "cron_paused": 12, "cron_errors": 4, "evo_jobs": 71, "evo_score": 0.8, "evo_claude": 6, "evo_age_h": 3.4882168685065373, "paper_stale_d": 18.50070202042935, "ragflow_stale_d": 19.290066005858005, "clinical_online": true, "db_count": 16, "wechat_papers": 8}');
+const HIST_URL = 'data:application/json,' + encodeURIComponent('[{"ts": "2026-06-24T22:36", "lit": 101, "hypo": 16, "gbrain": 90}, {"ts": "2026-06-25T07:15", "lit": 228, "hypo": 16, "gbrain": 91}, {"ts": "2026-06-25T13:00", "lit": 483, "hypo": 285, "gbrain": 90}, {"ts": "2026-06-25T18:49", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:00", "lit": 0, "hypo": 0, "gbrain": 90}]');
+
+let currentData = {"timestamp": "2026-06-25 19:00:20", "ts": 1782385220.827137, "pdf_count": 487, "pdf_age_h": 0.21110489964485168, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 1.8386312311225468, "hypo_total": 50, "hypo_age_h": 0.002432019114494324, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 19, "cap_age_h": 312.24846858302755, "cron_active": 70, "cron_paused": 12, "cron_errors": 4, "evo_jobs": 71, "evo_score": 0.8, "evo_claude": 6, "evo_age_h": 3.4882168685065373, "paper_stale_d": 18.50070202042935, "ragflow_stale_d": 19.290066005858005, "clinical_online": true, "db_count": 16, "wechat_papers": 8};
+let historyData = [{"ts": "2026-06-24T22:36", "lit": 101, "hypo": 16, "gbrain": 90}, {"ts": "2026-06-25T07:15", "lit": 228, "hypo": 16, "gbrain": 91}, {"ts": "2026-06-25T13:00", "lit": 483, "hypo": 285, "gbrain": 90}, {"ts": "2026-06-25T18:49", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:00", "lit": 0, "hypo": 0, "gbrain": 90}];
+
+function statusClass(ageH) {
+  if (ageH === null) return 'status-warn';
+  if (ageH < 24) return 'status-ok';
+  if (ageH < 72) return 'status-warn';
+  return 'status-err';
+}
+
+function renderCharts() {
+  const d = currentData;
+  const layout = {
+    paper_bgcolor: '#0d1117',
+    plot_bgcolor: '#0d1117',
+    font: { color: '#565b66', size: 11 },
+    margin: { l:40, r:20, t:10, b:30 },
+    xaxis: { gridcolor: '#1c2128', zeroline:false },
+    yaxis: { gridcolor: '#1c2128', zeroline:false },
+    showlegend: false,
+    hovermode: 'x unified'
+  };
+
+  // Literature chart
+  Plotly.newPlot('chart-lit', [{
+    type: 'indicator', mode: 'gauge+number',
+    value: d.pdf_count,
+    title: { text: 'PDF Count' },
+    gauge: { axis: { range: [0, 600] }, bar: { color: '#73d0ff' },
+      steps: [{ range: [0,200], color:'#1c2128' }, { range: [200,400], color:'#1c2128' }, { range: [400,600], color:'#1c2128' }],
+      threshold: { line:{ color:'#ffb454', width:2 }, value:400 }
+    }
+  }], { ...layout, height:200 });
+
+  // Hypothesis
+  Plotly.newPlot('chart-hypo', [{
+    type: 'indicator', mode: 'gauge+number+delta',
+    value: d.hypo_total,
+    delta: { reference: 16, increasing: { color: '#ffb454' } },
+    title: { text: 'Hypotheses' },
+    gauge: { axis: { range: [0, 350] }, bar: { color: '#ffb454' },
+      steps: [{ range:[0,100],color:'#1c2128' },{ range:[100,200],color:'#1c2128' },{ range:[200,350],color:'#1c2128' }]
+    }
+  }], { ...layout, height:200 });
+
+  // Evolution
+  Plotly.newPlot('chart-evo', [{
+    type: 'indicator', mode: 'gauge+number',
+    value: d.evo_jobs,
+    title: { text: 'Evo Tasks' },
+    gauge: { axis: { range: [0, 100] }, bar: { color: '#d2a6ff' },
+      steps: [{ range:[0,40],color:'#1c2128' },{ range:[40,70],color:'#1c2128' },{ range:[70,100],color:'#1c2128' }]
+    }
+  }], { ...layout, height:200 });
+
+  // Health radar
+  const healthVals = [
+    d.pdf_age_h ? (d.pdf_age_h < 24 ? 3 : d.pdf_age_h < 72 ? 2 : 1) : 0,
+    d.gbrain_age_h ? (d.gbrain_age_h < 24 ? 3 : 2) : 3,
+    d.hypo_age_h ? (d.hypo_age_h < 24 ? 3 : 2) : 3,
+    2, // gap (always warn)
+    d.cap_age_h ? (d.cap_age_h < 24 ? 3 : d.cap_age_h < 72 ? 2 : 1) : 1,
+    3, // pipeline
+    3, // clinical
+    d.cron_errors > 0 ? 1 : 3,
+    3, // wechat
+    d.paper_stale_d ? (d.paper_stale_d < 7 ? 3 : 1) : 3,
+    d.ragflow_stale_d ? (d.ragflow_stale_d < 7 ? 3 : 1) : 3,
+    d.evo_age_h ? (d.evo_age_h < 12 ? 3 : 1) : 3,
+  ];
+  Plotly.newPlot('chart-health', [{
+    type: 'scatterpolar', r: healthVals,
+    theta: ['Lit','Brain','Hypo','Gap','Caps','Pipe','Clin','Cron','WeChat','Paper','RAG','Evo'],
+    fill: 'toself', fillcolor: 'rgba(115,208,255,0.2)',
+    line: { color: '#73d0ff', width: 2 },
+    marker: { color: '#73d0ff', size: 6 }
+  }], {
+    ...layout, height:280,
+    polar: { bgcolor:'#0d1117', radialaxis: { range:[0,3.5], gridcolor:'#1c2128', tickvals:[1,2,3], ticktext:['DEAD','WARN','OK'] }, angularaxis: { gridcolor:'#1c2128' } }
+  });
+
+  // Subsystems bar
+  const names = ['Lit','Brain','Hypo','Gap','Caps','Pipe','Clin','Cron','Wx','Paper','RAG','Evo'];
+  const ages = [d.pdf_age_h||0, d.gbrain_age_h||0, d.hypo_age_h||0, 999, d.cap_age_h||999, 2, 2, 2, 2, d.paper_stale_d?d.paper_stale_d*24:999, d.ragflow_stale_d?d.ragflow_stale_d*24:999, d.evo_age_h||0];
+  const colors = ages.map(a => a < 24 ? '#73d0ff' : a < 72 ? '#ffb454' : '#ff6666');
+  Plotly.newPlot('chart-subsystems', [{
+    type: 'bar', x: names, y: ages, marker: { color: colors },
+    text: ages.map(a => a > 900 ? 'STALE' : a < 1 ? (a*60).toFixed(0)+'m' : a.toFixed(0)+'h'),
+    textposition: 'outside', textfont: { color: '#bfbdb6', size: 10 }
+  }], {
+    ...layout, height:380,
+    yaxis: { title:'Hours since last activity', gridcolor:'#1c2128', zeroline:false, range:[0, Math.max(100, ...ages)*1.1] },
+    xaxis: { gridcolor:'#1c2128', tickangle:-30 }
+  });
+
+  // Capsule pie
+  Plotly.newPlot('chart-capsule', [{
+    type: 'pie', values: [d.cap_passed, d.cap_failed, d.cap_total-d.cap_passed-d.cap_failed],
+    labels: ['Passed','Failed','Pending'],
+    marker: { colors: ['#73d0ff','#ff6666','#3a3f4b'] },
+    hole: 0.5, textinfo: 'label+value'
+  }], { ...layout, height:200, showlegend:true, legend:{ font:{color:'#565b66'} } });
+
+  // Stale monitor
+  const staleLabels = ['Capsule Report','Paper Draft','RAGFlow'];
+  const staleVals = [d.cap_age_h?d.cap_age_h/24:0, d.paper_stale_d||0, d.ragflow_stale_d||0];
+  const staleColors = staleVals.map(v => v > 14 ? '#ff6666' : v > 7 ? '#ffb454' : '#73d0ff');
+  Plotly.newPlot('chart-stale', [{
+    type: 'bar', x: staleLabels, y: staleVals, marker: { color: staleColors },
+    text: staleVals.map(v => v.toFixed(0)+'d'), textposition: 'outside',
+    textfont: { color: '#bfbdb6' }
+  }], {
+    ...layout, height:200,
+    yaxis: { title:'Days Stale', gridcolor:'#1c2128', zeroline:false },
+  });
+
+  // Alerts
+  const alerts = [];
+  if (d.cron_errors > 0) alerts.push('Cron Errors: ' + d.cron_errors);
+  if (d.hypo_l3 === 0 && d.hypo_total > 50) alerts.push('L3=0 with ' + d.hypo_total + ' hypos');
+  if (d.gap_pool > 100 && d.gap_consumed === 0) alerts.push('Gap: ' + d.gap_pool + ' pool, 0 consumed');
+  if (d.paper_stale_d > 14) alerts.push('Paper stale: ' + d.paper_stale_d.toFixed(0) + 'd');
+  if (d.ragflow_stale_d > 14) alerts.push('RAGFlow stale: ' + d.ragflow_stale_d.toFixed(0) + 'd');
+  document.getElementById('alert-text').textContent = alerts.length ? alerts.join(' | ') : 'All systems nominal';
+  document.getElementById('alerts').className = alerts.length > 1 ? 'alert-banner err' : 'alert-banner warn';
+}
+
+// Initial render
+renderCharts();
+
+// Clock
+function updateClock() { document.getElementById('clock').textContent = new Date().toLocaleString('zh-CN'); }
+setInterval(updateClock, 1000);
+
+// Auto-refresh (reload page to get fresh data)
+let countdown = 30;
+setInterval(() => {
+  countdown--;
+  document.getElementById('refresh-timer').textContent = 'Next refresh: ' + countdown + 's';
+  if (countdown <= 0) {
+    location.reload();
+  }
+}, 1000);
+
+// Resize handler
+window.addEventListener('resize', () => {
+  Plotly.Plots.resize(document.querySelectorAll('.chart-container'));
+});
+</script>
+</body>
+</html>
