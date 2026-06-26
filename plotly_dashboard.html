@@ -48,7 +48,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; back
     <h1><span class="pulse-dot live"></span>Hermes Live</h1>
     <div class="meta">Plotly Dashboard v3.0 · Auto-refresh 30s</div>
   </div>
-  <div class="meta" id="clock">2026-06-27 00:08:46</div>
+  <div class="meta" id="clock">2026-06-27 00:30:48</div>
 </div>
 
 <div class="alert-banner warn" id="alerts">
@@ -60,12 +60,12 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; back
   <div class="card" style="grid-column:span 2;">
     <div class="card-header"><span class="title">KPIs</span><span class="status status-ok">24h snapshot</span></div>
     <div class="kpi-row" id="kpi-row">
-      <div class="kpi"><div class="val" style="color:#73d0ff">586</div><div class="lbl">PDFs</div></div>
-      <div class="kpi"><div class="val" style="color:#ffb454">50</div><div class="lbl">Hypotheses</div></div>
-      <div class="kpi"><div class="val" style="color:#d2a6ff">79</div><div class="lbl">Evo Jobs</div></div>
+      <div class="kpi"><div class="val" style="color:#73d0ff">595</div><div class="lbl">PDFs</div></div>
+      <div class="kpi"><div class="val" style="color:#ffb454">15</div><div class="lbl">Hypotheses</div></div>
+      <div class="kpi"><div class="val" style="color:#d2a6ff">77</div><div class="lbl">Evo Jobs</div></div>
       <div class="kpi"><div class="val" style="color:#73d0ff">90</div><div class="lbl">GBrain Score</div></div>
       <div class="kpi"><div class="val" style="color:#ff6666">0</div><div class="lbl">Gap Pool</div></div>
-      <div class="kpi"><div class="val" style="color:#73d0ff">72</div><div class="lbl">Active Crons</div></div>
+      <div class="kpi"><div class="val" style="color:#73d0ff">71</div><div class="lbl">Active Crons</div></div>
       <div class="kpi"><div class="val" style="color:#ffb454">0/147</div><div class="lbl">Capsules</div></div>
     </div>
   </div>
@@ -117,11 +117,11 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; back
 </div>
 
 <script>
-const DATA_URL = 'data:application/json,' + encodeURIComponent('{"timestamp": "2026-06-27 00:08:46", "ts": 1782490126.495368, "pdf_count": 586, "pdf_age_h": 1.8358270937866634, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 0.12822967794206408, "hypo_total": 50, "hypo_age_h": 0.0015480314360724555, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 147, "cap_age_h": 341.3889319805304, "cron_active": 72, "cron_paused": 16, "cron_errors": 3, "evo_jobs": 79, "evo_score": 0.8, "evo_claude": 12, "evo_age_h": 12.135718583199713, "paper_stale_d": 19.714887995325306, "ragflow_stale_d": 20.50425198075396, "clinical_online": true, "db_count": 16, "wechat_papers": 9}');
-const HIST_URL = 'data:application/json,' + encodeURIComponent('[{"ts": "2026-06-24T22:36", "lit": 101, "hypo": 16, "gbrain": 90}, {"ts": "2026-06-25T07:15", "lit": 228, "hypo": 16, "gbrain": 91}, {"ts": "2026-06-25T13:00", "lit": 483, "hypo": 285, "gbrain": 90}, {"ts": "2026-06-25T18:49", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:31", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:01", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T22:00", "lit": 0, "hypo": 0, "gbrain": 90}]');
+const DATA_URL = 'data:application/json,' + encodeURIComponent('{"timestamp": "2026-06-27 00:30:48", "ts": 1782491448.951031, "pdf_count": 595, "pdf_age_h": 0.13642083677980635, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 0.09238513092199961, "hypo_total": 15, "hypo_age_h": 0.14138364990552266, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 147, "cap_age_h": 341.7562807757987, "cron_active": 71, "cron_paused": 17, "cron_errors": 4, "evo_jobs": 77, "evo_score": 0.8, "evo_claude": 13, "evo_age_h": 0.36462365720007156, "paper_stale_d": 19.73019419512815, "ragflow_stale_d": 20.519558180556807, "clinical_online": true, "db_count": 16, "wechat_papers": 10}');
+const HIST_URL = 'data:application/json,' + encodeURIComponent('[{"ts": "2026-06-24T22:36", "lit": 101, "hypo": 16, "gbrain": 90}, {"ts": "2026-06-25T07:15", "lit": 228, "hypo": 16, "gbrain": 91}, {"ts": "2026-06-25T13:00", "lit": 483, "hypo": 285, "gbrain": 90}, {"ts": "2026-06-25T18:49", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:31", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:01", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T22:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-27T00:12", "lit": 595, "hypo": 0, "gbrain": 90}]');
 
-let currentData = {"timestamp": "2026-06-27 00:08:46", "ts": 1782490126.495368, "pdf_count": 586, "pdf_age_h": 1.8358270937866634, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 0.12822967794206408, "hypo_total": 50, "hypo_age_h": 0.0015480314360724555, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 147, "cap_age_h": 341.3889319805304, "cron_active": 72, "cron_paused": 16, "cron_errors": 3, "evo_jobs": 79, "evo_score": 0.8, "evo_claude": 12, "evo_age_h": 12.135718583199713, "paper_stale_d": 19.714887995325306, "ragflow_stale_d": 20.50425198075396, "clinical_online": true, "db_count": 16, "wechat_papers": 9};
-let historyData = [{"ts": "2026-06-24T22:36", "lit": 101, "hypo": 16, "gbrain": 90}, {"ts": "2026-06-25T07:15", "lit": 228, "hypo": 16, "gbrain": 91}, {"ts": "2026-06-25T13:00", "lit": 483, "hypo": 285, "gbrain": 90}, {"ts": "2026-06-25T18:49", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:31", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:01", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T22:00", "lit": 0, "hypo": 0, "gbrain": 90}];
+let currentData = {"timestamp": "2026-06-27 00:30:48", "ts": 1782491448.951031, "pdf_count": 595, "pdf_age_h": 0.13642083677980635, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 0.09238513092199961, "hypo_total": 15, "hypo_age_h": 0.14138364990552266, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 147, "cap_age_h": 341.7562807757987, "cron_active": 71, "cron_paused": 17, "cron_errors": 4, "evo_jobs": 77, "evo_score": 0.8, "evo_claude": 13, "evo_age_h": 0.36462365720007156, "paper_stale_d": 19.73019419512815, "ragflow_stale_d": 20.519558180556807, "clinical_online": true, "db_count": 16, "wechat_papers": 10};
+let historyData = [{"ts": "2026-06-24T22:36", "lit": 101, "hypo": 16, "gbrain": 90}, {"ts": "2026-06-25T07:15", "lit": 228, "hypo": 16, "gbrain": 91}, {"ts": "2026-06-25T13:00", "lit": 483, "hypo": 285, "gbrain": 90}, {"ts": "2026-06-25T18:49", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:31", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:01", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T22:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-27T00:12", "lit": 595, "hypo": 0, "gbrain": 90}];
 
 function statusClass(ageH) {
   if (ageH === null) return 'status-warn';
