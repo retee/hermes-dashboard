@@ -48,7 +48,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; back
     <h1><span class="pulse-dot live"></span>Hermes Live</h1>
     <div class="meta">Plotly Dashboard v3.0 · Auto-refresh 30s</div>
   </div>
-  <div class="meta" id="clock">2026-06-27 08:00:44</div>
+  <div class="meta" id="clock">2026-06-27 08:30:13</div>
 </div>
 
 <div class="alert-banner warn" id="alerts">
@@ -60,7 +60,7 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; back
   <div class="card" style="grid-column:span 2;">
     <div class="card-header"><span class="title">KPIs</span><span class="status status-ok">24h snapshot</span></div>
     <div class="kpi-row" id="kpi-row">
-      <div class="kpi"><div class="val" style="color:#73d0ff">658</div><div class="lbl">PDFs</div></div>
+      <div class="kpi"><div class="val" style="color:#73d0ff">713</div><div class="lbl">PDFs</div></div>
       <div class="kpi"><div class="val" style="color:#ffb454">50</div><div class="lbl">Hypotheses</div></div>
       <div class="kpi"><div class="val" style="color:#d2a6ff">77</div><div class="lbl">Evo Jobs</div></div>
       <div class="kpi"><div class="val" style="color:#73d0ff">90</div><div class="lbl">GBrain Score</div></div>
@@ -117,10 +117,10 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; back
 </div>
 
 <script>
-const DATA_URL = 'data:application/json,' + encodeURIComponent('{"timestamp": "2026-06-27 08:00:44", "ts": 1782518444.590613, "pdf_count": 658, "pdf_age_h": 0.19019844750563303, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 0.15691985388596852, "hypo_total": 50, "hypo_age_h": 0.0023293338219324746, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 147, "cap_age_h": 349.2550695485539, "cron_active": 73, "cron_paused": 17, "cron_errors": 3, "evo_jobs": 77, "evo_score": 0.8, "evo_claude": 13, "evo_age_h": 7.863412429955271, "paper_stale_d": 20.042643727326283, "ragflow_stale_d": 20.832007712754937, "clinical_online": true, "db_count": 16, "wechat_papers": 10}');
+const DATA_URL = 'data:application/json,' + encodeURIComponent('{"timestamp": "2026-06-27 08:30:13", "ts": 1782520213.917165, "pdf_count": 713, "pdf_age_h": 0.0006612218750847711, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 0.008374030788739523, "hypo_total": 50, "hypo_age_h": 0.011893488301171196, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 147, "cap_age_h": 349.7465491463741, "cron_active": 73, "cron_paused": 17, "cron_errors": 3, "evo_jobs": 77, "evo_score": 0.8, "evo_claude": 13, "evo_age_h": 8.354892027775447, "paper_stale_d": 20.063122043902123, "ragflow_stale_d": 20.85248602933078, "clinical_online": true, "db_count": 16, "wechat_papers": 10}');
 const HIST_URL = 'data:application/json,' + encodeURIComponent('[{"ts": "2026-06-24T22:36", "lit": 101, "hypo": 16, "gbrain": 90}, {"ts": "2026-06-25T07:15", "lit": 228, "hypo": 16, "gbrain": 91}, {"ts": "2026-06-25T13:00", "lit": 483, "hypo": 285, "gbrain": 90}, {"ts": "2026-06-25T18:49", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:31", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:01", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T22:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-27T00:12", "lit": 595, "hypo": 0, "gbrain": 90}]');
 
-let currentData = {"timestamp": "2026-06-27 08:00:44", "ts": 1782518444.590613, "pdf_count": 658, "pdf_age_h": 0.19019844750563303, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 0.15691985388596852, "hypo_total": 50, "hypo_age_h": 0.0023293338219324746, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 147, "cap_age_h": 349.2550695485539, "cron_active": 73, "cron_paused": 17, "cron_errors": 3, "evo_jobs": 77, "evo_score": 0.8, "evo_claude": 13, "evo_age_h": 7.863412429955271, "paper_stale_d": 20.042643727326283, "ragflow_stale_d": 20.832007712754937, "clinical_online": true, "db_count": 16, "wechat_papers": 10};
+let currentData = {"timestamp": "2026-06-27 08:30:13", "ts": 1782520213.917165, "pdf_count": 713, "pdf_age_h": 0.0006612218750847711, "lit_scanned": 11515, "lit_ingested": 102, "gbrain_health": 90, "gbrain_pages": 0, "gbrain_age_h": 0.008374030788739523, "hypo_total": 50, "hypo_age_h": 0.011893488301171196, "hypo_l3": 0, "hypo_l2": 0, "gap_pool": 0, "gap_consumed": 31, "cap_passed": 0, "cap_failed": 0, "cap_total": 147, "cap_age_h": 349.7465491463741, "cron_active": 73, "cron_paused": 17, "cron_errors": 3, "evo_jobs": 77, "evo_score": 0.8, "evo_claude": 13, "evo_age_h": 8.354892027775447, "paper_stale_d": 20.063122043902123, "ragflow_stale_d": 20.85248602933078, "clinical_online": true, "db_count": 16, "wechat_papers": 10};
 let historyData = [{"ts": "2026-06-24T22:36", "lit": 101, "hypo": 16, "gbrain": 90}, {"ts": "2026-06-25T07:15", "lit": 228, "hypo": 16, "gbrain": 91}, {"ts": "2026-06-25T13:00", "lit": 483, "hypo": 285, "gbrain": 90}, {"ts": "2026-06-25T18:49", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T19:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T20:31", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:01", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T21:30", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-25T22:00", "lit": 0, "hypo": 0, "gbrain": 90}, {"ts": "2026-06-27T00:12", "lit": 595, "hypo": 0, "gbrain": 90}];
 
 function statusClass(ageH) {
