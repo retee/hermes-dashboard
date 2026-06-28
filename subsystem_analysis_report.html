@@ -33,17 +33,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 <div class="header">
 <h1>Hermes 子系统深度分析报告</h1>
-<div class="meta">生成: 2026-06-28 22:07:23 | 数据源: 文件系统实时读取 | 每30分钟刷新</div>
+<div class="meta">生成: 2026-06-28 22:30:33 | 数据源: 文件系统实时读取 | 每30分钟刷新</div>
 </div>
 
 <div class="summary">
 <div class="s"><div class="n g">757</div><div class="l">PDF文献</div></div>
-<div class="s"><div class="n b">48</div><div class="l">活跃假设</div></div>
+<div class="s"><div class="n b">47</div><div class="l">活跃假设</div></div>
 <div class="s"><div class="n g">35</div><div class="l">L3验证通过</div></div>
 <div class="s"><div class="n b">66</div><div class="l">胶囊总数</div></div>
 <div class="s"><div class="n g">21%</div><div class="l">胶囊通过率</div></div>
 <div class="s"><div class="n y">1217/1217</div><div class="l">缺口评分</div></div>
-<div class="s"><div class="n b">104</div><div class="l">活跃Cron</div></div>
+<div class="s"><div class="n b">109</div><div class="l">活跃Cron</div></div>
 <div class="s"><div class="n g">8</div><div class="l">进化行动/次</div></div>
 </div>
 
@@ -58,7 +58,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="subsystem">
 <h3>🧠 GBrain 🟢</h3>
-<div class="status"><b>健康分:90, Autopilot:2进程</b></div>
+<div class="status"><b>健康分:90, Autopilot:3进程</b></div>
 <div class="row">
 <div class="box"><h4>当前运转</h4><p>PGLite数据库正常，快照每6小时自动执行。DeepSeek通过本地proxy:4000接入。</p></div>
 <div class="box"><h4>之前困难+修复</h4><p>之前PGLite锁超时导致上传失败，已通过wait+重试解决。</p></div>
@@ -67,7 +67,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="subsystem">
 <h3>🔬 科研闭环 🟢</h3>
-<div class="status"><b>假设:48, L3通过:35, 胶囊通过:6</b></div>
+<div class="status"><b>假设:47, L3通过:35, 胶囊通过:6</b></div>
 <div class="row">
 <div class="box"><h4>当前运转</h4><p>L3验证管线已建成: 假设→R脚本→沙箱→门控。通过<strong>35个</strong>L3验证(CP/GPX4/ACSL4/TFRC/CD8A)。胶囊复现6个通过(21%)。</p></div>
 <div class="box"><h4>之前困难+修复</h4><p>之前L3=0无验证闭环。已建L3_verify_pipeline.py全自动管线。</p></div>
@@ -112,9 +112,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="subsystem">
 <h3>⚙️ Cron调度 🔴</h3>
-<div class="status"><b>活跃:104, 错误:11</b></div>
+<div class="status"><b>活跃:109, 错误:11</b></div>
 <div class="row">
-<div class="box"><h4>当前运转</h4><p>104个活跃任务。Orchestrator主循环+Claude诊断师+自愈看门狗三层防护。</p></div>
+<div class="box"><h4>当前运转</h4><p>109个活跃任务。Orchestrator主循环+Claude诊断师+自愈看门狗三层防护。</p></div>
 <div class="box"><h4>之前困难+修复</h4><p>Orchestrator RuntimeError已通过v2的no-agent模式解决。11个残留错误待排查。</p></div>
 <div class="box"><h4>下一步</h4><p>Cron错误需逐一排查</p></div>
 </div>
@@ -150,7 +150,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="footer">
 Hermes 子系统深度分析报告 v3.0 · 实时数据版<br>
-生成: 2026-06-28 22:07:23 | 刷新: cron 30min + 浏览器30s自动
+生成: 2026-06-28 22:30:33 | 刷新: cron 30min + 浏览器30s自动
 </div>
 
 <script>
